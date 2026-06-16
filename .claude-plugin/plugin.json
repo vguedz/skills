@@ -1,14 +1,5 @@
 {
-  "name": "vguedz",
-  "description": "Agent skills for AI coding assistants — testing, React, and more.",
-  "version": "1.0.0",
-  "author": {
-    "name": "Victor Guedes",
-    "email": "victorgcramos@gmail.com"
-  },
-  "homepage": "https://github.com/vguedz/skills",
-  "repository": "https://github.com/vguedz/skills",
-  "license": "MIT",
+  "name": "vguedz-skills",
   "skills": [
     "./skills/react-testing"
   ]
