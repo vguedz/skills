@@ -104,7 +104,6 @@ Format: `"should <result> - for <action>"`. Group related scenarios under `descr
 ## See Also
 
 - [EXAMPLES.md](EXAMPLES.md) — concrete patterns for forms, async states, routing, optimistic updates, provider wrappers
-- [references/test-example.tsx](references/test-example.tsx) — annotated test template with inline guidance
 - [references/testing-workflow.md](references/testing-workflow.md) — full test planning methodology: mapping use cases, scaffolding blocks, user validation
 - [references/test-organization.md](references/test-organization.md) — file and directory conventions for test suites
 - [references/msw-mocking.md](references/msw-mocking.md) — MSW server mocking: test against responses, not requests. server.use() patterns, never leave unmatched handlers
