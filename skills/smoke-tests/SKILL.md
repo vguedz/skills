@@ -1,6 +1,6 @@
 ---
 name: smoke-tests
-description: Executes focused feature smoke tests, maps every acceptance criterion to concrete test evidence, produces a robust suite report, and publishes the result to the repo's issue tracker. Use when a feature needs acceptance verification, a smoke test pass, release confidence, issue validation, or a criterion-by-criterion test report.
+description: Executes focused feature smoke tests, maps every acceptance criterion to concrete test evidence, produces a robust suite report, and saves the result locally or posts to the issue tracker when appropriate. Use when a feature needs acceptance verification, a smoke test pass, release confidence, issue validation, or a criterion-by-criterion test report.
 ---
 
 # Smoke Tests
@@ -13,7 +13,7 @@ This is an execution skill. Do not stop after proposing tests.
 
 ## Workflow
 
-1. Read repository instructions, domain docs (`CONTEXT.md`), testing ADRs, and relevant feature code.
+1. Read repository instructions, domain docs (`CONTEXT.md`, if present), testing ADRs (if present), and relevant feature code.
 2. **Detect the issue tracker** (see below).
 3. Identify the feature and associated issue:
    - Prefer an issue explicitly supplied by the user.
@@ -29,23 +29,24 @@ This is an execution skill. Do not stop after proposing tests.
    - expected evidence.
 8. Execute focused tests first, then the appropriate broader regression checks. Add or adjust tests only when the request permits implementation and existing coverage cannot verify a criterion.
 9. Classify results: `PASS`, `FAIL`, `BLOCKED`, or `NOT TESTED` per criterion.
-10. Produce the report using [REFERENCE.md](REFERENCE.md) and [EXAMPLES.md](EXAMPLES.md), then post it to the detected issue tracker (or save locally).
+10. Produce the report using [REFERENCE.md](REFERENCE.md) and [EXAMPLES.md](EXAMPLES.md), then post it to the detected issue tracker when the user requested tracker publication or the repo's issue-tracker doc instructs it; otherwise save locally.
 
 ## Issue Tracker Detection
 
 Determine which issue tracker this repo uses:
 
-1. **`docs/agents/issue-tracker.md` exists?** → read it, follow its conventions. DONE.
-2. **No?** Inspect `git remote -v`:
-   - `github.com` → verify `gh` is installed (`which gh`).
-   - `gitlab.com` or self-hosted GitLab → verify `glab` is installed (`which glab`).
-   - No remote / unrecognised → ask the user.
-3. **CLI not installed?** → warn, then ask the user.
-4. **Ask the user** (when auto-detection fails):
+1. **`docs/agents/issue-tracker.md` exists?** -> read it, follow its conventions.
+2. **No?** Look for repo-documented tooling (e.g., GitHub Actions config, package.json scripts with `gh` or `glab`, CI config referencing a tracker).
+3. **Still unknown?** Inspect `git remote -v`:
+   - `github.com` -> verify `gh` is installed (`which gh`).
+   - `gitlab.com` or self-hosted GitLab -> verify `glab` is installed (`which glab`).
+   - No remote / unrecognised -> ask the user.
+4. **CLI not installed for detected platform?** -> check for alternative repo-documented connectors or ask the user.
+5. **Ask the user** (when auto-detection fails):
    > "I couldn't determine this repo's issue tracker. Options: GitHub (`gh`), GitLab (`glab`), Local markdown (`.scratch/`), Other. Want me to persist this to `docs/agents/issue-tracker.md`?"
 
    For Jira, Linear, or other systems without a local CLI, save the report as a local file and tell the user where to post it.
-5. **No tracker at all** → save the report as a local file (repo root or `.scratch/smoke-tests/`). State clearly that no comment was posted.
+6. **No tracker at all** -> save the report as a local file (repo root or `.scratch/smoke-tests/`). State clearly that no comment was posted.
 
 See [REFERENCE.md](REFERENCE.md#issue-tracker-comment) for the exact commands per tracker.
 
@@ -96,4 +97,4 @@ Use the repository's established testing layers and domain vocabulary. When the 
 
 ## Detailed Standard
 
-Read [REFERENCE.md](REFERENCE.md) before executing a smoke-test assignment. See [EXAMPLES.md](EXAMPLES.md) for a matrix and tracker-ready report.
+Use [REFERENCE.md](REFERENCE.md) for detailed report format, tracker commands, and edge cases. See [EXAMPLES.md](EXAMPLES.md) for a matrix and tracker-ready report.

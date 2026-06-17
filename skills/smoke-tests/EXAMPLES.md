@@ -101,14 +101,16 @@ Before posting, inspect the file and remove secret values, raw cookies, private 
 
 ### GitLab (glab)
 
-```bash
-glab issue note 42 --message "$(cat /tmp/smoke-tests-issue-42.md)"
-```
-
-GitLab calls comments "notes". The `--message` flag accepts the body inline; piping through `$(cat ...)` works for moderately sized reports. For very long reports, pipe through stdin:
+GitLab calls comments "notes". Prefer the stdin form to avoid shell quoting issues with long reports:
 
 ```bash
 glab issue note 42 -F- < /tmp/smoke-tests-issue-42.md
+```
+
+Alternatively, for short reports the `--message` flag accepts the body inline:
+
+```bash
+glab issue note 42 --message "$(cat /tmp/smoke-tests-issue-42.md)"
 ```
 
 ### Local markdown (`.scratch/`)

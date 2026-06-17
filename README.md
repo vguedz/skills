@@ -28,6 +28,10 @@ Create, improve, and audit agent skills with concise progressive-disclosure stru
 
 React Testing Library: user-centric component testing with queries, user-event simulation, async utilities, and accessibility-first API. Use when writing React component tests, selecting elements by role/label/text, simulating user events, or testing async UI behavior.
 
+### smoke-tests
+
+Executes focused feature smoke tests, maps every acceptance criterion to concrete test evidence, produces a robust suite report, and saves the result locally or posts to the issue tracker when appropriate. Use when a feature needs acceptance verification, a smoke test pass, release confidence, issue validation, or a criterion-by-criterion test report.
+
 ## Skill Structure
 
 Each skill contains:

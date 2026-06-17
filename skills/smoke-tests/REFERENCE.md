@@ -183,7 +183,7 @@ When an associated issue exists:
    | Tracker | Read issue | Comment |
    |---|---|---|
    | GitHub | `gh issue view <N> --comments` | `gh issue comment <N> --body-file <file>` |
-   | GitLab | `glab issue view <N> --comments` | `glab issue note <N> --message "$(cat <file>)"` |
+   | GitLab | `glab issue view <N> --comments` | `glab issue note <N> -F- < <file>` |
    | Local | Read `.scratch/<slug>/issues/<NN>-<slug>.md` | Append to `## Comments` section |
    | Other | As described in `docs/agents/issue-tracker.md` | Same |
 
