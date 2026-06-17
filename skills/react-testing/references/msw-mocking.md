@@ -1,6 +1,6 @@
 # MSW Server Mocking
 
-How to use Mock Service Worker to test your application's reaction to server responses. Never mimic server behavior. Never assert on requests. Test what your application *does* with the response it receives.
+How to use Mock Service Worker to test your application's reaction to server responses. Never mimic server behavior. Prefer asserting user-visible outcomes over request shape. Assert request payloads only when the request body is the meaningful contract — data-writing flows, form serialization, destructive actions, or when no visible outcome proves the data was sent correctly.
 
 ---
 
@@ -293,7 +293,9 @@ This throws an error immediately when any request goes unhandled. The error mess
 
 ## Anti-patterns: What Never to Do
 
-### Never: Assert on the Request
+### Prefer Not to Assert on the Request
+
+Asserting on request payloads couples tests to the transport. Prefer asserting user-visible outcomes instead. However, assert request payloads when the request body *is* the meaningful contract: checkout payloads, destructive actions, form serialization where the user-visible outcome doesn't prove the data was sent correctly.
 
 ```tsx
 // WRONG — implementation detail
@@ -315,7 +317,7 @@ test('sends correct payload', async () => {
 })
 ```
 
-**Why it's wrong**: If you refactor the login flow to use a different HTTP client or endpoint, this test fails even though the user experience is identical.
+**Why it's riskier**: If you refactor the login flow to use a different HTTP client or endpoint, this test fails even though the user experience is identical. Reserve request assertions for cases where the payload is the contract.
 
 **Do this instead**:
 
@@ -534,7 +536,7 @@ describe('UserList', () => {
 **Per test / describe:**
 - [ ] Declare handlers with `server.use()` inside the test or `beforeEach`
 - [ ] Declare only the endpoints this test needs
-- [ ] Never assert on request shape, method, or payload
+- [ ] Prefer asserting user-visible outcomes over request shape, method, or payload
 - [ ] Never replicate server business logic in handlers
 - [ ] Declare the response, then assert the UI outcome
 

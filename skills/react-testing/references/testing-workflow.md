@@ -91,7 +91,7 @@ describe('LoginForm', () => {
 
 This gives you immediate visibility into coverage gaps. Are all user conditions covered? Are error states handled? Are loading and empty states accounted for?
 
-### 2.2 Validate Each Block With the User
+### 2.2 Validate Each Block With the User (When Scope Is Broad or High-Risk)
 
 Present the scaffolded blocks to the user interactively, grouped by feature or condition. This serves two purposes:
 
@@ -116,7 +116,7 @@ When email is invalid:
 Does this cover all scenarios you care about? Any gaps or changes?
 ```
 
-Only proceed to writing tests after the user confirms the plan.
+Only proceed to writing tests after the user confirms the plan. For small bug fixes or explicit, narrow user requests, skip this step.
 
 ---
 
@@ -143,12 +143,6 @@ function setup(props?: SetupProps) {
     />,
   )
 
-  // Pre-fill fields if specified
-  if (props?.initialEmail) {
-    // Note: userEvent is async, but we can't await in setup.
-    // Pre-fill should be done in the test body or via props/defaults.
-  }
-
   return { user, onSubmit }
 }
 ```
@@ -164,10 +158,8 @@ Key rules for setup functions:
 function setup() {
   render(<HomePage />)
   return {
-    waitForPageToLoad: async () => {
-      const loadingLabel = screen.queryByText('Loading...')
-      await waitForElementToBeRemoved(loadingLabel)
-    },
+    waitForPageToLoad: () =>
+      waitForElementToBeRemoved(() => screen.getByText('Loading...')),
   }
 }
 ```
@@ -356,7 +348,7 @@ Before writing tests:
 - [ ] All user-visible scenarios mapped (loading, empty, error, success, edge cases)
 - [ ] Risk gaps identified and prioritized
 - [ ] Empty `describe`/`test` blocks scaffolded
-- [ ] Blocks validated with user
+- [ ] Blocks validated with user (when scope is broad or high-risk)
 
 While writing tests:
 - [ ] Each test uses a local `setup()` function (not `beforeEach`)

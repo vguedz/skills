@@ -2,82 +2,114 @@
 
 ## Form Validation
 
+Uses a local `setup()` with `render()` inside. `describe` groups conditions. Test names follow `"should <result> - for <action>"`. Callback assertions (like `onSubmit`) are valid here because the form's public contract is the callback — the user-visible outcome is what data was submitted.
+
 ```tsx
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { LoginForm } from './LoginForm'
+// assuming Vitest globals; otherwise import { vi } from 'vitest'
 
-test('shows error when email is missing', async () => {
-  const user = userEvent.setup()
-  render(<LoginForm />)
-
-  await user.click(screen.getByRole('button', { name: /log in/i }))
-
-  expect(screen.getByText(/email is required/i)).toBeVisible()
-})
-
-test('submits with valid data', async () => {
+function setup() {
   const user = userEvent.setup()
   const onSubmit = vi.fn()
   render(<LoginForm onSubmit={onSubmit} />)
+  return { user, onSubmit }
+}
 
-  await user.type(screen.getByLabelText(/email/i), 'user@example.com')
-  await user.type(screen.getByLabelText(/password/i), 'secret123')
-  await user.click(screen.getByRole('button', { name: /log in/i }))
+describe('LoginForm', () => {
+  describe('when email is missing', () => {
+    test('should show validation error - for submit with empty form', async () => {
+      const { user } = setup()
 
-  expect(onSubmit).toHaveBeenCalledWith({
-    email: 'user@example.com',
-    password: 'secret123',
+      await user.click(screen.getByRole('button', { name: /log in/i }))
+
+      expect(screen.getByText(/email is required/i)).toBeVisible()
+    })
+  })
+
+  describe('when credentials are valid', () => {
+    test('should call onSubmit with form data - for valid submission', async () => {
+      const { user, onSubmit } = setup()
+
+      await user.type(screen.getByLabelText(/email/i), 'user@example.com')
+      await user.type(screen.getByLabelText(/password/i), 'secret123')
+      await user.click(screen.getByRole('button', { name: /log in/i }))
+
+      expect(onSubmit).toHaveBeenCalledWith({
+        email: 'user@example.com',
+        password: 'secret123',
+      })
+    })
   })
 })
 ```
 
-## Async Loading & Error States (with MSW)
+## Async States with MSW
+
+MSW handlers are declared locally with `server.use()` inside the test or `beforeEach`. The shared `server` instance is defined once per project (see `references/msw-mocking.md`). `render()` stays inside `setup()`. Loading checkpoint helpers decouple "wait for load" from "assert result".
 
 ```tsx
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitForElementToBeRemoved } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
-import { setupServer } from 'msw/node'
+import { server } from '@/mocks/server'
+import { UserList } from './UserList'
 
-const server = setupServer()
-
-beforeAll(() => server.listen())
-afterEach(() => server.resetHandlers())
-afterAll(() => server.close())
-
-test('shows loading then data', async () => {
-  server.use(
-    http.get('/api/users', () =>
-      HttpResponse.json([{ id: 1, name: 'Alice' }]),
-    ),
-  )
+function setup() {
   render(<UserList />)
+  return {
+    waitForLoadToFinish: () =>
+      waitForElementToBeRemoved(() => screen.getByText(/loading/i)),
+  }
+}
 
-  expect(screen.getByText(/loading/i)).toBeVisible()
-  expect(await screen.findByText('Alice')).toBeVisible()
-})
+describe('UserList', () => {
+  describe('when API returns users', () => {
+    beforeEach(() => {
+      server.use(
+        http.get('/api/users', () =>
+          HttpResponse.json([{ id: 1, name: 'Alice' }]),
+        ),
+      )
+    })
 
-test('shows error on failure', async () => {
-  server.use(
-    http.get('/api/users', () => HttpResponse.error()),
-  )
-  render(<UserList />)
+    test('should display user names - after data loads', async () => {
+      const { waitForLoadToFinish } = setup()
 
-  expect(await screen.findByText(/failed to load/i)).toBeVisible()
-})
+      await waitForLoadToFinish()
 
-test('shows empty state', async () => {
-  server.use(
-    http.get('/api/users', () => HttpResponse.json([])),
-  )
-  render(<UserList />)
+      expect(screen.getByText('Alice')).toBeVisible()
+    })
+  })
 
-  expect(await screen.findByText(/no users found/i)).toBeVisible()
+  describe('when API returns an empty list', () => {
+    test('should show empty state - for no users', async () => {
+      server.use(http.get('/api/users', () => HttpResponse.json([])))
+      const { waitForLoadToFinish } = setup()
+
+      await waitForLoadToFinish()
+
+      expect(screen.getByText(/no users found/i)).toBeVisible()
+    })
+  })
+
+  describe('when the API fails', () => {
+    test('should show error message - on network failure', async () => {
+      server.use(http.get('/api/users', () => HttpResponse.error()))
+      const { waitForLoadToFinish } = setup()
+
+      await waitForLoadToFinish()
+
+      expect(screen.getByText(/failed to load/i)).toBeVisible()
+    })
+  })
 })
 ```
 
-## Routing & Navigation
+## Routing and Navigation
+
+Providers (router, query client, store) wrap `render()` inside `setup()`. Accept route overrides so each test controls its starting state.
 
 ```tsx
 import { render, screen } from '@testing-library/react'
@@ -85,50 +117,44 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { AppRoutes } from './AppRoutes'
 
-test('navigates to settings page', async () => {
+function setup(route = '/') {
   const user = userEvent.setup()
   render(
-    <MemoryRouter initialEntries={['/']}>
+    <MemoryRouter initialEntries={[route]}>
       <AppRoutes />
     </MemoryRouter>,
   )
+  return { user }
+}
 
-  await user.click(screen.getByRole('link', { name: /settings/i }))
+describe('App navigation', () => {
+  describe('when on the home page', () => {
+    test('should navigate to settings - for click on settings link', async () => {
+      const { user } = setup('/')
 
-  expect(
-    screen.getByRole('heading', { name: /settings/i }),
-  ).toBeVisible()
+      await user.click(screen.getByRole('link', { name: /settings/i }))
+
+      expect(
+        screen.getByRole('heading', { name: /settings/i }),
+      ).toBeVisible()
+    })
+  })
 })
 ```
 
-## Optimistic Updates
+## Multiple Providers (Query Client + Router)
+
+When components need multiple providers, create a local render helper inside the `setup()` or as a shared utility. The key is `render()` is never inline — it's always inside the function that returns test handles.
 
 ```tsx
-test('optimistically marks todo as done', async () => {
-  render(
-    <QueryClientProvider client={queryClient}>
-      <TodoList />
-    </QueryClientProvider>,
-  )
+import { render, screen, waitForElementToBeRemoved } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MemoryRouter } from 'react-router'
+import { Dashboard } from './Dashboard'
+
+function setup(route = '/dashboard') {
   const user = userEvent.setup()
-
-  await user.click(
-    screen.getByRole('checkbox', { name: /buy milk/i }),
-  )
-
-  expect(
-    screen.getByRole('checkbox', { name: /buy milk/i }),
-  ).toBeChecked()
-})
-```
-
-## Provider Wrappers (shared render helper)
-
-```tsx
-function renderWithProviders(
-  ui: React.ReactElement,
-  options?: { route?: string },
-) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
@@ -136,46 +162,85 @@ function renderWithProviders(
   function Wrapper({ children }: { children: React.ReactNode }) {
     return (
       <QueryClientProvider client={queryClient}>
-        <MemoryRouter initialEntries={[options?.route ?? '/']}>
+        <MemoryRouter initialEntries={[route]}>
           {children}
         </MemoryRouter>
       </QueryClientProvider>
     )
   }
 
-  return { ...render(ui, { wrapper: Wrapper }), queryClient }
+  render(<Dashboard />, { wrapper: Wrapper })
+  return {
+    user,
+    queryClient,
+    waitForLoadToFinish: () =>
+      waitForElementToBeRemoved(() => screen.getByText(/loading/i)),
+  }
 }
 
-test('uses shared wrapper', async () => {
-  renderWithProviders(<Dashboard />, { route: '/dashboard' })
-  expect(await screen.findByText(/welcome/i)).toBeVisible()
+describe('Dashboard', () => {
+  describe('when user navigates to dashboard', () => {
+    test('should show welcome message - for authenticated user', async () => {
+      const { waitForLoadToFinish } = setup()
+
+      await waitForLoadToFinish()
+
+      expect(screen.getByText(/welcome/i)).toBeVisible()
+    })
+  })
 })
 ```
 
-## Async Utility Pattern
+## Loading Checkpoints
 
-Extract reusable async workflows into helper functions that take the `user` instance. This keeps tests readable while avoiding deep abstraction.
+Asserting intermediate loading states makes tests more robust. Return helpers from `setup()` to decouple the loading assertion from the result assertion.
 
 ```tsx
+import { render, screen } from '@testing-library/react'
+import { waitForElementToBeRemoved } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { http, HttpResponse } from 'msw'
+import { server } from '@/mocks/server'
+import { ProfilePage } from './ProfilePage'
+
 function setup() {
   const user = userEvent.setup()
-  return { user }
+  render(<ProfilePage />)
+  return {
+    user,
+    waitForLoadToFinish: () =>
+      waitForElementToBeRemoved(() => screen.getByText(/loading/i)),
+  }
 }
 
-async function submitForm(
-  user: ReturnType<typeof userEvent.setup>,
-) {
-  await user.click(screen.getByRole('button', { name: /save/i }))
-  await screen.findByText(/saved/i)
-}
+describe('ProfilePage', () => {
+  describe('when profile loads successfully', () => {
+    test('should display user name - after loading completes', async () => {
+      server.use(
+        http.get('/api/profile', () =>
+          HttpResponse.json({ name: 'Fulano de Tal' }),
+        ),
+      )
+      const { waitForLoadToFinish } = setup()
 
-test('save triggers confirmation', async () => {
-  const { user } = setup()
-  render(<SettingsForm />)
+      await waitForLoadToFinish()
 
-  await user.type(screen.getByLabelText(/name/i), 'New Name')
-  await submitForm(user)
+      expect(screen.getByText('Fulano de Tal')).toBeVisible()
+    })
+  })
 
-  expect(screen.getByText(/changes saved/i)).toBeVisible()
+  describe('while profile is loading', () => {
+    test('should show spinner - before data arrives', async () => {
+      server.use(
+        http.get('/api/profile', () =>
+          HttpResponse.json({ name: 'Fulano de Tal' }),
+        ),
+      )
+      setup()
+
+      // Loading state is visible immediately before MSW responds
+      expect(screen.getByText(/loading/i)).toBeVisible()
+    })
+  })
 })
 ```

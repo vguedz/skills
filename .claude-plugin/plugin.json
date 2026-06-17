@@ -1,6 +1,7 @@
 {
   "name": "vguedz-skills",
   "skills": [
+    "./skills/create-skill",
     "./skills/react-testing"
   ]
 }
