@@ -2,6 +2,7 @@
   "name": "vguedz-skills",
   "skills": [
     "./skills/create-skill",
+    "./skills/full-build",
     "./skills/react-testing",
     "./skills/smoke-tests"
   ]
