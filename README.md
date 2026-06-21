@@ -36,8 +36,6 @@ End-to-end feature building: exhaustively map user paths, confirm scope, scaffol
 
 | Skill | Source | Why |
 |-------|--------|-----|
-| `grill-me` | [Matt Pocock](https://github.com/mattpocock/skills) | Reference pattern for interrogative questioning (full-build inverts this) |
-| `tdd` | [Matt Pocock](https://github.com/mattpocock/skills) | Test-first philosophy and tracer-bullet patterns |
 | `react-testing` | This repo (`skills/react-testing/`) | React Testing Library patterns for React apps |
 
 ### smoke-tests

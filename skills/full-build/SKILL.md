@@ -1,11 +1,11 @@
 ---
 name: full-build
-description: End-to-end feature building: exhaustively map user paths, confirm scope, scaffold test blocks with UX comments, implement feature, write behavior-driven tests, gate on green tests + quality checks. Use when user wants to build a complete feature end-to-end, mentions "full build", or asks for use-case-driven feature development.
+description: End-to-end feature building - exhaustively map user paths, confirm scope, scaffold test blocks with UX comments, implement feature, write behavior-driven tests, gate on green tests + quality checks. Use when user wants to build a complete feature end-to-end, mentions "full build", or asks for use-case-driven feature development.
 ---
 
 # Full Build
 
-Lead the build end-to-end. Make decisions, confirm via batch yes/no. Different from `grill-me` (you drive, not interrogate) and `tdd` (map all use cases first, then implement).
+Lead the build end-to-end. Make decisions, confirm via batch yes/no/more-info(optional)
 
 ## Quick Start
 
@@ -56,7 +56,7 @@ Final gate before writing any files.
 
 ### 4. Identify Test Infrastructure
 
-Check `package.json` scripts, test configs, utilities, MSW. React → `react-testing` patterns. Other → industry standard (pytest, RSpec, etc.).
+Check `package.json` scripts, test configs, utilities, MSW. React → `react-testing` (skill) patterns. Other → industry standard (pytest, RSpec, etc.).
 
 ### 5. Scaffold Test Blocks
 
