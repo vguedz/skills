@@ -7,18 +7,6 @@ description: End-to-end feature building: exhaustively map user paths, confirm s
 
 Lead the build end-to-end. Make decisions, confirm via batch yes/no. Different from `grill-me` (you drive, not interrogate) and `tdd` (map all use cases first, then implement).
 
-## Companion Skills
-
-This skill is designed to work alongside others. Install these for the full workflow:
-
-| Skill | Source | Why needed |
-|-------|--------|------------|
-| `grill-me` | [Matt Pocock](https://github.com/mattpocock/skills) | Reference pattern for interrogative questioning (full-build inverts this — you lead, user confirms) |
-| `tdd` | [Matt Pocock](https://github.com/mattpocock/skills) | Test-first philosophy and tracer-bullet patterns referenced during implementation |
-| `react-testing` | This repo (`skills/react-testing/`) | React Testing Library patterns used in step 8 when the app is React |
-
-Without these installed, the agent won't have access to their patterns when `full-build` references them.
-
 ## Workflow
 
 ### 1. Map Use Cases

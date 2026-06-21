@@ -28,6 +28,18 @@ Create, improve, and audit agent skills with concise progressive-disclosure stru
 
 React Testing Library: user-centric component testing with queries, user-event simulation, async utilities, and accessibility-first API. Use when writing React component tests, selecting elements by role/label/text, simulating user events, or testing async UI behavior.
 
+### full-build
+
+End-to-end feature building: exhaustively map user paths, confirm scope, scaffold test blocks with UX comments, implement feature, write behavior-driven tests, gate on green tests + quality checks. Use when user wants to build a complete feature end-to-end, mentions "full build", or asks for use-case-driven feature development.
+
+**Companion skills needed for full workflow:**
+
+| Skill | Source | Why |
+|-------|--------|-----|
+| `grill-me` | [Matt Pocock](https://github.com/mattpocock/skills) | Reference pattern for interrogative questioning (full-build inverts this) |
+| `tdd` | [Matt Pocock](https://github.com/mattpocock/skills) | Test-first philosophy and tracer-bullet patterns |
+| `react-testing` | This repo (`skills/react-testing/`) | React Testing Library patterns for React apps |
+
 ### smoke-tests
 
 Executes focused feature smoke tests, maps every acceptance criterion to concrete test evidence, produces a robust suite report, and saves the result locally or posts to the issue tracker when appropriate. Use when a feature needs acceptance verification, a smoke test pass, release confidence, issue validation, or a criterion-by-criterion test report.
