@@ -42,6 +42,10 @@ End-to-end feature building: exhaustively map user paths, confirm scope, scaffol
 
 Executes focused feature smoke tests, maps every acceptance criterion to concrete test evidence, produces a robust suite report, and saves the result locally or posts to the issue tracker when appropriate. Use when a feature needs acceptance verification, a smoke test pass, release confidence, issue validation, or a criterion-by-criterion test report.
 
+### vg-design
+
+Production-grade frontend design engineering with Emil Kowalski's animation philosophy, anti-slop UI patterns, premium visual design, and full-output enforcement. Aggregates and optimizes standards from emil-design-eng, vercel-composition-patterns, impeccable, design-taste-frontend, high-end-visual-design, and full-output-enforcement. Use when designing, building, or reviewing frontend interfaces — landing pages, portfolios, dashboards, product UI, forms, animations, design systems.
+
 ## Skill Structure
 
 Each skill contains:
@@ -49,6 +53,7 @@ Each skill contains:
 - `SKILL.md` — Instructions for the agent
 - `EXAMPLES.md` — Concrete copy-pasteable patterns
 - `references/` — Deep-dive supporting documentation
+- `DISCLAIMER.md` — Attribution and legal disclaimer (if applicable)
 
 ## License
 
