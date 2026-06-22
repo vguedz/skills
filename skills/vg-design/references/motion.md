@@ -33,32 +33,37 @@ Valid: spatial consistency, state indication, explanation, feedback, preventing 
 
 ```
 Element entering or exiting?
-  Yes → ease-out (starts fast, feels responsive)
+  Yes → custom ease-out curve (starts fast, feels responsive)
   No →
     Moving/morphing on screen?
-      Yes → ease-in-out
+      Yes → custom ease-in-out curve
     Hover/color change?
-      Yes → ease
+      Yes → ease (for deliberate color-only micro-transitions < 200ms)
     Constant motion (marquee, progress bar)?
       Yes → linear
-    Default → ease-out
+    Default → custom ease-out curve
 ```
 
 ## Easing Curves (Emil Standard)
 
-**Never use ease-in for UI.** It starts slow, making the interface feel sluggish. A dropdown with `ease-in` at 300ms feels slower than `ease-out` at the same 300ms.
+**Never use `ease-in` for UI.** It starts slow, making the interface feel sluggish. A dropdown with `ease-in` at 300ms feels slower than `ease-out` at the same 300ms.
 
 **Never use `transition: all`.** Specify exact properties.
 
-**Never use built-in CSS easings.** They lack the punch that makes animations feel intentional. Use custom cubic-bezier curves.
-
 ```css
---ease-out: cubic-bezier(0.23, 1, 0.32, 1);       /* UI interactions: buttons, toasts, popovers, tooltips */
+--ease-out: cubic-bezier(0.23, 1, 0.32, 1);       /* directional UI movement, popovers, toasts, tooltips */
 --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);    /* on-screen movement, morphing, cards moving */
 --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);     /* iOS-like drawer, drag-to-dismiss (from Ionic) */
 ```
 
-**Easing curve resources:** Use [easing.dev](https://easing.dev/) or [easings.co](https://easings.co/) to find stronger variants.
+**When to use which:**
+- `--ease-out`: Any UI element entering/exiting (toasts, popovers, tooltips, dropdowns, button feedback)
+- `--ease-in-out`: Elements moving on screen without appearing/disappearing (card reorder, layout shift, morph)
+- `--ease-drawer`: Drawers, bottom sheets, drag-to-dismiss, swipe interactions
+- `linear`: Constant/scrubbed motion (marquees, scroll-driven animations, hold-to-delete press phase)
+- CSS `ease`: Only for deliberate color-only micro-transitions under 200ms (hover bg color change). Not for directional movement.
+
+**Easing curve resources:** [easing.dev](https://easing.dev/) or [easings.co](https://easings.co/)
 
 ## Duration Reference
 
@@ -67,27 +72,24 @@ Element entering or exiting?
 | Button press feedback | 100-160ms |
 | Tooltips, small popovers | 125-200ms |
 | Dropdowns, selects | 150-250ms |
-| Modals, drawers | 200-500ms |
+| Modals, drawers | 200-300ms for UI; up to 500ms only for large gesture-driven sheets |
 | Marketing/explanatory | Can be longer |
 
-**Rule: UI animations stay under 300ms.** A 180ms dropdown feels more responsive than a 400ms one. A faster-spinning spinner makes loading feel faster (same load time, different perception).
+**Rule: UI animations stay under 300ms.**
 
 ## Perceived Performance
 
 Speed in animation directly affects perceived performance:
-- A fast-spinning spinner makes loading feel faster
+- A fast-spinning spinner makes loading feel faster (same load time, different perception)
 - A 180ms select feels more responsive than 400ms
 - Instant tooltips after the first one (skip delay + skip animation) make the whole toolbar feel faster
-
-`ease-out` at 200ms feels faster than `ease-in` at 200ms because the user sees immediate movement.
+- `ease-out` at 200ms feels faster than `ease-in` at 200ms because the user sees immediate movement
 
 ## Spring Animations
 
 Springs simulate real physics. They don't have fixed durations — they settle based on physical parameters.
 
 **When to use:** drag interactions with momentum, Apple Dynamic Island, interruptible gestures, decorative mouse tracking.
-
-**Spring-based mouse interactions:** Use `useSpring` from Motion to interpolate value changes. Never `useState` for continuous input values (mouse, scroll, physics).
 
 ```js
 // Apple's approach (recommended)
@@ -97,41 +99,29 @@ Springs simulate real physics. They don't have fixed durations — they settle b
 { type: "spring", mass: 1, stiffness: 100, damping: 10 }
 ```
 
-Keep bounce 0.1-0.3. Avoid bounce in most UI contexts. Use for drag-to-dismiss and playful interactions.
+Keep bounce 0.1-0.3. Avoid bounce in most UI contexts.
 
-**Interruptibility:** Springs maintain velocity when interrupted — CSS animations and keyframes restart from zero. Ideal for gestures users might change mid-motion.
+**Spring-based mouse interactions:** Use `useSpring` from Motion. Never `useState` for continuous values.
 
 ## CSS Transform Mastery
 
 ### translateY with percentages
-Percentage values are relative to the element's own size. Prefer percentages over hardcoded pixels — they adapt to content.
+Percentage values are relative to the element's own size. Prefer percentages over hardcoded pixels.
 
 ```css
-.drawer-hidden { transform: translateY(100%); } /* works regardless of drawer height */
-.toast-enter { transform: translateY(-100%); }   /* works regardless of toast height */
+.drawer-hidden { transform: translateY(100%); }
+.toast-enter { transform: translateY(-100%); }
 ```
 
 ### scale() scales children too
-Unlike `width`/`height`, `scale()` scales an element's children proportionally (font, icons, content). This is a feature.
-
-### 3D transforms for depth
-```css
-.wrapper { transform-style: preserve-3d; }
-@keyframes orbit {
-  from { transform: translate(-50%,-50%) rotateY(0deg) translateZ(72px) rotateY(360deg); }
-  to   { transform: translate(-50%,-50%) rotateY(360deg) translateZ(72px) rotateY(0deg); }
-}
-```
+Unlike `width`/`height`, `scale()` scales children proportionally. This is a feature.
 
 ### transform-origin
 Default is center. Set to match the trigger for origin-aware interactions.
 
 ## clip-path for Animation
 
-`clip-path` is not just for shapes — it is one of the most powerful animation tools in CSS.
-
-### The inset shape
-`clip-path: inset(top right bottom left)` — each value "eats" into the element from that side.
+`clip-path: inset(top right bottom left)` — each value eats into the element from that side.
 
 ```css
 .overlay {
@@ -144,17 +134,13 @@ Default is center. Set to match the trigger for origin-aware interactions.
 }
 ```
 
-### Tabs with perfect color transitions
-Duplicate the tab list. Style the copy as "active". Clip it so only the active tab is visible. Animate the clip on tab change. This creates seamless color transitions that timing individual color transitions can never achieve.
+**Tabs with perfect color transitions:** Duplicate tab list. Style copy as "active". Clip it so only the active tab is visible. Animate clip on tab change.
 
-### Hold-to-delete
-`clip-path: inset(0 100% 0 0)` on overlay. On `:active`, transition to `inset(0 0 0 0)` over 2s linear. On release, snap back 200ms ease-out. Add `scale(0.97)` for press feedback.
+**Hold-to-delete:** `inset(0 100% 0 0)` → `inset(0 0 0 0)` over 2s linear on `:active`. Snap back 200ms ease-out. Add `scale(0.97)` for press feedback.
 
-### Image reveals on scroll
-Start `clip-path: inset(0 0 100% 0)`. Animate to `inset(0 0 0 0)` when entering viewport.
+**Image reveals on scroll:** Start `inset(0 0 100% 0)`. Animate to `inset(0 0 0 0)` when entering viewport.
 
-### Comparison sliders
-Overlay two images. Clip top one with `inset(0 50% 0 0)`. Adjust right inset based on drag. Fully hardware-accelerated.
+**Comparison sliders:** Overlay two images. Clip top with `inset(0 X% 0 0)`. Fully hardware-accelerated.
 
 ## Component Animation Rules
 
@@ -163,11 +149,16 @@ Overlay two images. Clip top one with `inset(0 50% 0 0)`. Adjust right inset bas
 .button { transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1); }
 .button:active { transform: scale(0.97); }
 ```
-Apply to every pressable element. Scale should be 0.95-0.98.
+
+**Scale-on-active gate:** This rule applies to standalone CTAs, landing-page buttons, and premium marketing interactions. It does NOT apply to:
+- Keyboard-driven tools (command palette, terminal, search) — any interaction used 100+ times/day
+- Repeated actions (> 10 times per session: table rows, checkboxes, filter chips, nav items, pagination)
+- Dense product UI (DENSITY ≥ 7: dashboard cards, data tables, form fields)
+- Segmented controls, toggle groups, tab bars (use background change or 1px translate instead)
+
+For excluded elements, use a background change or 1px translate for feedback.
 
 ### Never animate from scale(0)
-Nothing in the real world appears from nothing. Start from `scale(0.95)` combined with `opacity: 0`.
-
 ```css
 /* Bad */
 .entering { transform: scale(0); }
@@ -176,15 +167,12 @@ Nothing in the real world appears from nothing. Start from `scale(0.95)` combine
 ```
 
 ### Make popovers origin-aware
-Popovers scale from their trigger, not from center. Modals keep `transform-origin: center`.
-
 ```css
 .popover { transform-origin: var(--radix-popover-content-transform-origin); }
 ```
+Modals keep `transform-origin: center`.
 
 ### Tooltips: skip delay on subsequent hovers
-Delay before appearing to prevent accidental activation. But once one tooltip is open, adjacent tooltips open instantly.
-
 ```css
 .tooltip {
   transition: transform 125ms cubic-bezier(0.23, 1, 0.32, 1),
@@ -196,83 +184,66 @@ Delay before appearing to prevent accidental activation. But once one tooltip is
 ```
 
 ### Use CSS transitions over keyframes for interruptible UI
-Transitions can be interrupted and retargeted mid-animation. Keyframes restart from zero. For rapidly-triggered elements (toasts, toggles), use transitions.
+Transitions can be interrupted and retargeted. Keyframes restart from zero. For toasts, toggles, rapidly-triggered elements — use transitions.
 
 ### Use blur to mask imperfect crossfades
-When a crossfade between two states feels off, add `filter: blur(2px)` during the transition. Blur bridges the visual gap. Keep under 20px — expensive in Safari.
-
 ```css
-.button-content { transition: filter 200ms cubic-bezier(0.23, 1, 0.32, 1), opacity 200ms ease; }
+.button-content { transition: filter 200ms cubic-bezier(0.23, 1, 0.32, 1), opacity 200ms cubic-bezier(0.23, 1, 0.32, 1); }
 .button-content.transitioning { filter: blur(2px); opacity: 0.7; }
 ```
+Keep blur under 20px.
 
 ### Animate enter states with @starting-style
 ```css
 .toast {
   opacity: 1; transform: translateY(0);
-  transition: opacity 400ms cubic-bezier(0.23, 1, 0.32, 1),
-              transform 400ms cubic-bezier(0.23, 1, 0.32, 1);
+  transition: opacity 200ms cubic-bezier(0.23, 1, 0.32, 1),
+              transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
   @starting-style { opacity: 0; transform: translateY(100%); }
 }
 ```
-Browser support: Chrome 117+, Firefox 129+, Safari 17.5+. Fall back to `data-mounted` attribute pattern for older browsers.
+Browser: Chrome 117+, FF 129+, Safari 17.5+. Fallback: `data-mounted` / `useEffect` pattern.
 
 ## Asymmetric Enter/Exit Timing
 
-Slow where the user is deciding, fast where the system responds:
-
+Slow where user decides, fast where system responds:
 ```css
-.overlay { transition: clip-path 200ms cubic-bezier(0.23, 1, 0.32, 1); }  /* release: fast */
-.button:active .overlay { transition: clip-path 2s linear; }              /* press: slow */
+.overlay { transition: clip-path 200ms cubic-bezier(0.23, 1, 0.32, 1); }
+.button:active .overlay { transition: clip-path 2s linear; }
 ```
 
 ## Stagger Animations
 
-Keep stagger delays short (30-80ms between items). Long delays feel slow. Decorative — never block interaction.
+30-80ms between items. Decorative — never block interaction.
 
 ```css
 .item { opacity: 0; transform: translateY(8px); animation: fadeIn 300ms cubic-bezier(0.23, 1, 0.32, 1) forwards; }
 .item:nth-child(1) { animation-delay: 0ms; }
 .item:nth-child(2) { animation-delay: 50ms; }
 .item:nth-child(3) { animation-delay: 100ms; }
-.item:nth-child(4) { animation-delay: 150ms; }
 @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
 ```
 
 ## Gesture & Drag
 
-- **Momentum-based dismissal:** Calculate `Math.abs(dragDistance) / elapsedTime`. If velocity > 0.11, dismiss regardless of distance.
-- **Damping at boundaries:** The more the user drags past the natural boundary, the less the element moves.
-- **Pointer capture:** Once dragging starts, set the element to capture all pointer events.
-- **Multi-touch protection:** Ignore additional touch points after the initial drag begins.
+- **Momentum-based dismissal:** `Math.abs(dragDistance) / elapsedTime`. If velocity > 0.11, dismiss.
+- **Damping at boundaries:** More drag past boundary = less movement.
+- **Pointer capture:** Capture all pointer events once drag starts.
+- **Multi-touch protection:** Ignore additional touch points after initial drag.
 
 ## Performance Rules
 
-- **Animate ONLY `transform` and `opacity`.** These skip layout/paint, running on GPU.
-- **CSS variables are inheritable.** Updating `--swipe-amount` on a container causes expensive recalculation on all children. Update `transform` directly instead.
-- **Framer Motion shorthand (`x`, `y`, `scale`) is NOT hardware-accelerated.** It uses `requestAnimationFrame` on the main thread. Use `transform: "translateX(100px)"` for hardware acceleration.
-- **CSS animations beat JS under load.** CSS runs off the main thread. Use CSS for predetermined animations, JS for dynamic/interruptible ones.
-- **Use WAAPI for programmatic CSS animations.** JavaScript control with CSS performance:
+- **Animate ONLY `transform` and `opacity`.** GPU-accelerated, skip layout/paint. `clip-path` is also GPU-accelerated — it's the exception to this rule and animates on the compositor without triggering layout or paint. `filter: blur()` is GPU-accelerated but expensive at high values on Safari; keep blur under 6px.
+- **CSS variables are inheritable.** Updating parent variable recalculates all children. Update `transform` directly instead.
+- **Framer Motion shorthand (`x`, `y`, `scale`) is NOT hardware-accelerated.** Use `transform: "translateX(100px)"`.
+- **CSS animations beat JS under load.** They run off the main thread.
+- **WAAPI:** JavaScript control with CSS performance:
   ```js
   element.animate(
     [{ clipPath: 'inset(0 0 100% 0)' }, { clipPath: 'inset(0 0 0 0)' }],
     { duration: 1000, fill: 'forwards', easing: 'cubic-bezier(0.77, 0, 0.175, 1)' }
   );
   ```
-
-## Reduced Motion (Mandatory)
-
-Keep opacity and color transitions that aid comprehension. Remove movement and position animations.
-
-```css
-@media (prefers-reduced-motion: reduce) {
-  .element { animation: fade 0.2s ease; /* No transform-based motion */ }
-}
-```
-
-In Motion: `const shouldReduceMotion = useReducedMotion();` Degrade to static/instant.
-
-**Touch device hover states:** Gate behind `@media (hover: hover) and (pointer: fine)` — touch devices trigger hover on tap.
 
 ## Motion Library Choice
 
@@ -282,33 +253,55 @@ In Motion: `const shouldReduceMotion = useReducedMotion();` Degrade to static/in
 - **WAAPI** — programmatic CSS animations with JS control
 - **Never mix GSAP/Three.js with Motion in the same component tree**
 
+## Concrete Component Rules (from Sonner Principles)
+
+### Minimal API
+A component's public API should be zero-config for the default case:
+```tsx
+// Ideal: single import, single call, works immediately
+toast("Saved successfully");
+
+// Acceptable: one-time setup
+<Toaster /> // in root, once
+toast("Saved successfully"); // call from anywhere
+```
+
+### Default Behavior (not just visual)
+- **Timers pause when tab is hidden** (`visibilitychange` event). Resume on return.
+- **Stacking:** New items push existing items up. Fill gaps between stacked elements so hover state is continuous.
+- **Keyboard behavior:** Escape dismisses the topmost item. Focus trapped inside interactive items.
+- **Transition strategy:** Use CSS transitions (interruptible), not keyframes. Items are added rapidly.
+
+### Escape Hatches
+Every opinionated default needs an opt-out, but opt-outs should be explicit:
+```tsx
+toast("Processing...", { duration: Infinity }); // don't auto-dismiss
+toast.error("Failed", { dismissible: false });  // must be programmatically dismissed
+```
+Never expose timing internals as public API unless the user asks.
+
+### Cohesion
+The easing, duration, and visual style must fit the component's personality. A playful toast can be bouncier. A professional dashboard toast should be crisp and fast. Match the motion to the mood.
+
 ## GSAP Canonical Skeletons
 
-**Sticky-Stack:** `start: "top top"`, `pin: true`, every card except last pinned. `pinSpacing: false`. Scale/opacity driven by next card's trigger.
+**Sticky-Stack:** `start: "top top"`, `pin: true`, `pinSpacing: false`. Every card except last pinned. Scale/opacity driven by next card's trigger.
 
 **Horizontal-Pan:** `start: "top top"`, `pin: true` on wrapper, `scrub: 1`, `end: () => `+=${distance}`. Wrapper pinned, inner track slides horizontally.
 
-## The Sonner Principles (Building Loved Components)
-
-1. **Developer experience is key.** No hooks, no context, no complex setup. Insert once, call from anywhere.
-2. **Good defaults matter more than options.** Ship beautiful out of the box. Most users never customize.
-3. **Handle edge cases invisibly.** Pause timers when tab is hidden. Users never notice these.
-4. **Use transitions, not keyframes, for dynamic UI.** Rapidly-added items. Keyframes restart from zero.
-5. **Cohesion matters.** Match the motion to the mood. Playful = bouncier. Professional = crisp and fast.
-
 ## Debugging Animations
 
-- **Slow motion testing:** Play at 2-5x normal speed. Temporarily increase durations.
-- **Frame-by-frame:** Chrome DevTools Animations panel. Check easing, sync between properties.
-- **Real devices:** Test touch interactions on physical devices, not simulators.
-- **Review next day:** You notice imperfections the next day that you missed during development.
+- **Slow motion:** Play at 2-5x speed. Check easing, sync, transform-origin, overlapping states.
+- **Frame-by-frame:** Chrome DevTools Animations panel.
+- **Real devices:** Test touch interactions on physical hardware.
+- **Review next day:** Fresh eyes catch what development focus misses.
 
 ## Forbidden Animation Patterns
 
 - `window.addEventListener("scroll", ...)` — banned. Use `useScroll()`, `ScrollTrigger`, `IntersectionObserver`, CSS `animation-timeline: view()`.
-- Custom `window.scrollY` in React state — re-renders on every frame.
+- Custom `window.scrollY` in React state.
 - `requestAnimationFrame` touching React state — use motion values.
-- `transition: all` — always specify exact properties.
+- `transition: all` — specify exact properties.
 - `ease-in` on UI elements.
 - Keyframes on rapidly-triggered elements — use CSS transitions.
 - Animating layout properties (`top`, `left`, `width`, `height`).

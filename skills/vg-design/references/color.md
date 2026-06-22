@@ -11,8 +11,9 @@
 
 ## Core Rules
 
-- **Use OKLCH** for new projects.
-- **One accent color per project.** Saturation < 80% by default. Once chosen, lock it — audit every component before shipping.
+- **Use OKLCH** for new projects (see [tokens.md](tokens.md) for full token architecture and OKLCH reference).
+- **One brand accent color per project.** Saturation < 80% by default. Once chosen, lock it — audit every component before shipping.
+- **Semantic and chart colors are allowed** in addition to the brand accent. Error (red), success (green), warning (amber), and info (blue) form a functional semantic palette. Data visualization charts use a distinct categorical palette (see [product-ui.md](product-ui.md#charts--data-visualization)). These do not count as "extra accents" — they carry functional meaning. The "one accent" rule applies to brand expression, not to semantic color coding.
 - **The LILA Rule:** AI-purple/blue glow aesthetic is discouraged as default. No automatic purple button glows, no random neon gradients. Use neutral bases (Zinc/Slate/Stone) with high-contrast singular accents (Emerald, Electric Blue, Deep Rose, Burnt Orange).
 - **No pure `#000000` or `#ffffff`.** Off-black (zinc-950, near-black warm gray) and off-white always. Pure values kill depth.
 - **Verify contrast.** Body text ≥ 4.5:1 against background; large text (≥18px or bold ≥14px) needs ≥3:1. Placeholder text needs 4.5:1 too. Most common failure: muted gray body text on tinted near-white.
@@ -48,6 +49,4 @@ For cookware/wellness/artisan/luxury/DTC briefs, the AI-default beige+brass+oxbl
 - Choose theme by writing one sentence of physical scene: who uses this, where, under what ambient light, in what mood.
 - **Page Theme Lock:** ONE theme for the whole page. No section flips to inverted mode mid-page. Section-level bg tints within the same theme family are fine (`bg-zinc-950` next to `bg-zinc-900`); flipping to `bg-amber-50` in the middle of a `bg-zinc-950` page is broken.
 - Respect `prefers-color-scheme` unless the brand insists on one mode. Add manual toggle if needed.
-- Use Tailwind `dark:` variant or CSS variables. Pick one strategy per project.
-- **Token strategy** (pick one, stick to it): Tailwind `dark:` variant (default for utility-first), CSS variables (for shadcn/ui, Radix Themes).
-- Maintain contrast, hierarchy parity, brand fidelity across both modes.
+- For full token-level dark mode guidance, see [tokens.md](tokens.md#dark-mode-pairing).

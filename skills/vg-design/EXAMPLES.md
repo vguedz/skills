@@ -1,34 +1,18 @@
 # Examples — Copy-Safe Code Patterns
 
+> **Before copying:** Verify the imported libraries exist in `package.json`. Motion, GSAP, and icon libraries must be installed. Never assume availability.
+>
+> Colors use off-white (`neutral-50`/`neutral-950`) and OKLCH values, never `#fff` or `#000`.
+
 ## Button with Emil's Easing
 
 ```tsx
-<button className="button">
+<button className="group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-zinc-900 text-zinc-50 dark:bg-zinc-50 dark:text-zinc-900 border-0 cursor-pointer transition-transform duration-[160ms] ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97]">
   Get Started
-  <span className="button-icon">→</span>
+  <span className="w-8 h-8 rounded-full bg-zinc-50/10 dark:bg-zinc-900/10 flex items-center justify-center transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5 group-hover:-translate-y-[1px] group-hover:scale-105">
+    →
+  </span>
 </button>
-```
-
-```css
-.button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  border-radius: 999px;
-  background: #000;
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
-}
-.button:active {
-  transform: scale(0.97);
-}
-.button:hover .button-icon {
-  transform: translateX(2px) translateY(-1px);
-  transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
-}
 ```
 
 ## Origin-Aware Popover
@@ -40,14 +24,8 @@
     transform 200ms cubic-bezier(0.23, 1, 0.32, 1),
     opacity 200ms cubic-bezier(0.23, 1, 0.32, 1);
 }
-.popover-content[data-state="open"] {
-  transform: scale(1);
-  opacity: 1;
-}
-.popover-content[data-state="closed"] {
-  transform: scale(0.95);
-  opacity: 0;
-}
+.popover-content[data-state="open"]  { transform: scale(1); opacity: 1; }
+.popover-content[data-state="closed"] { transform: scale(0.95); opacity: 0; }
 ```
 
 ## Tooltip with Skip-Delay
@@ -60,13 +38,8 @@
   transform-origin: var(--transform-origin);
 }
 .tooltip[data-starting-style],
-.tooltip[data-ending-style] {
-  opacity: 0;
-  transform: scale(0.97);
-}
-.tooltip[data-instant] {
-  transition-duration: 0ms;
-}
+.tooltip[data-ending-style] { opacity: 0; transform: scale(0.97); }
+.tooltip[data-instant] { transition-duration: 0ms; }
 ```
 
 ## Hold-to-Delete Button
@@ -77,14 +50,12 @@
   overflow: hidden;
   transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
 }
-.delete-button:active {
-  transform: scale(0.97);
-}
+.delete-button:active { transform: scale(0.97); }
 
 .delete-overlay {
   position: absolute;
   inset: 0;
-  background: red;
+  background: oklch(0.55 0.18 25); /* error red */
   clip-path: inset(0 100% 0 0);
   transition: clip-path 200ms cubic-bezier(0.23, 1, 0.32, 1);
 }
@@ -108,11 +79,11 @@ export function RevealStagger({ items }: { items: React.ReactNode[] }) {
       {items.map((item, i) => (
         <motion.li
           key={i}
-          initial={reduce ? false : { opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={reduce ? false : { opacity: 0, transform: 'translateY(24px)' }}
+          whileInView={{ opacity: 1, transform: 'translateY(0px)' }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{
-            duration: 0.6,
+            duration: 0.3,
             delay: i * 0.06,
             ease: [0.23, 1, 0.32, 1],
           }}
@@ -132,15 +103,14 @@ export function RevealStagger({ items }: { items: React.ReactNode[] }) {
 import { useRef, useEffect } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useReducedMotion } from "motion/react";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export function StickyStack({ cards }: { cards: React.ReactNode[] }) {
   const ref = useRef<HTMLDivElement>(null);
-  const reduce = useReducedMotion();
 
   useEffect(() => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduce || !ref.current) return;
     const ctx = gsap.context(() => {
       const cardEls = gsap.utils.toArray<HTMLElement>(".stack-card");
@@ -155,7 +125,7 @@ export function StickyStack({ cards }: { cards: React.ReactNode[] }) {
           pinSpacing: false,
         });
         gsap.to(card, {
-          scale: 0.92,
+          transform: "scale(0.92)",
           opacity: 0.55,
           ease: "none",
           scrollTrigger: {
@@ -168,7 +138,7 @@ export function StickyStack({ cards }: { cards: React.ReactNode[] }) {
       });
     }, ref);
     return () => ctx.revert();
-  }, [reduce]);
+  }, []);
 
   return (
     <div ref={ref} className="relative">
@@ -189,21 +159,20 @@ export function StickyStack({ cards }: { cards: React.ReactNode[] }) {
 import { useRef, useEffect } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useReducedMotion } from "motion/react";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export function HorizontalPan({ children }: { children: React.ReactNode }) {
   const wrap = useRef<HTMLDivElement>(null);
   const track = useRef<HTMLDivElement>(null);
-  const reduce = useReducedMotion();
 
   useEffect(() => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduce || !wrap.current || !track.current) return;
     const ctx = gsap.context(() => {
       const distance = track.current!.scrollWidth - window.innerWidth;
       gsap.to(track.current, {
-        x: -distance,
+        transform: `translate3d(${-distance}px, 0, 0)`,
         ease: "none",
         scrollTrigger: {
           trigger: wrap.current,
@@ -216,7 +185,7 @@ export function HorizontalPan({ children }: { children: React.ReactNode }) {
       });
     }, wrap);
     return () => ctx.revert();
-  }, [reduce]);
+  }, []);
 
   return (
     <section ref={wrap} className="relative overflow-hidden">
@@ -230,29 +199,16 @@ export function HorizontalPan({ children }: { children: React.ReactNode }) {
 
 ## Double-Bezel Premium Card
 
+Use only for premium showcase surfaces (pricing, product, hero-level features). Max 3 per page. Only when VARIANCE ≥ 6 AND DENSITY ≤ 5.
+
 ```tsx
 export function PremiumCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="bg-black/5 dark:bg-white/5 p-1.5 rounded-[2rem] ring-1 ring-black/5 dark:ring-white/10">
-      <div className="bg-white dark:bg-zinc-900 rounded-[calc(2rem-0.375rem)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)]">
+    <div className="bg-neutral-950/5 dark:bg-neutral-50/5 p-1.5 rounded-[2rem] ring-1 ring-neutral-950/5 dark:ring-neutral-50/10">
+      <div className="bg-neutral-50 dark:bg-neutral-900 rounded-[calc(2rem-0.375rem)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)]">
         {children}
       </div>
     </div>
-  );
-}
-```
-
-## Button-In-Button CTA
-
-```tsx
-export function PremiumCTA({ children }: { children: React.ReactNode }) {
-  return (
-    <button className="group inline-flex items-center gap-3 px-6 py-3 rounded-full bg-black text-white dark:bg-white dark:text-black transition-transform duration-160 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97]">
-      <span>{children}</span>
-      <span className="w-8 h-8 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:translate-x-0.5 group-hover:-translate-y-[1px] group-hover:scale-105">
-        →
-      </span>
-    </button>
   );
 }
 ```

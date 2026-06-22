@@ -1,13 +1,24 @@
 # Workflow
 
-## 1. Brief Inference
+## 1. Implementation Discovery (Before Designing)
 
-Read these signals before any code:
+Always inspect the codebase before applying vg-design defaults. Check in order:
+
+1. `package.json` — installed icon libraries, Motion, GSAP, design system packages, Tailwind version
+2. Existing components — read a representative page/component to understand current conventions
+3. CSS tokens / theme files — extract existing color, radius, shadow, font, and spacing tokens
+4. Project conventions — naming patterns, file structure, client/server component boundaries
+
+**If the project already uses Inter, beige, Lucide, or a specific design system:** that constraint outranks vg-design aesthetic preferences per the precedence model. Work within the existing system. Document exceptions rather than silently applying defaults.
+
+## 2. Brief Inference
+
+Read before any code:
 
 1. **Page kind** — landing (SaaS / consumer / agency / event), portfolio, dashboard, redesign (preserve vs overhaul)
-2. **Vibe words** — "minimalist", "Linear-style", "Awwwards", "premium consumer", "Apple-y", "brutalist", "editorial", "agency"
-3. **Reference signals** — URLs, screenshots, products named, brands being compared to
-4. **Audience** — technical buyers vs design-conscious consumers vs procurement panel vs recruiters
+2. **Vibe words** — "minimalist", "Linear-style", "Awwwards", "premium consumer", "Apple-y", "brutalist", "editorial"
+3. **Reference signals** — URLs, screenshots, products named, brands compared to
+4. **Audience** — technical buyers vs design-conscious consumers vs procurement panel
 5. **Existing brand assets** — logo, color, type, photography (mandatory for redesigns)
 
 **Output a one-line Design Read:**
@@ -15,25 +26,44 @@ Read these signals before any code:
 
 If ambiguous, ask exactly one question. If you can confidently infer, proceed silently.
 
-## 2. The Three Dials
+## 3. Precedence Model
+
+When sources conflict, follow this hierarchy. Lower tiers defer to upper tiers.
+
+| Tier | Authority | Overrides |
+|---|---|---|
+| 1 | **Accessibility & Performance** | Everything below. WCAG AA, `prefers-reduced-motion`, Core Web Vitals. |
+| 2 | **Project Constraints** | Existing design system, brand tokens, redesign preservation rules. |
+| 3 | **Emil's Motion Standard** | All easing, duration, spring, and animation decisions. |
+| 4 | **Layout & Typography Rules** | Hero discipline, section cadence, eyebrow restraint, card rules, font selection. |
+| 5 | **Aesthetic Preferences** | Premium patterns, double-bezel, variance engine, stylistic choices. |
+
+**Known conflict resolutions (Tier 3 overrides Tier 4):**
+- `transition: all` is banned even when dial says "CSS transitions." Specify exact properties.
+- `ease-out` CSS keyword → use `cubic-bezier(0.23, 1, 0.32, 1)` for UI movement. Use `linear` for constant/scrubbed motion. `ease` acceptable only for deliberate color-only micro-transitions under 200ms.
+- Duration ceiling: UI animations max 300ms regardless of MOTION_INTENSITY dial.
+- Aesthetic preferences (double-bezel, glass, large radii) defer to accessibility contrast rules.
+- Premium-consumer palette bans override aesthetic preference for the beige+brass family.
+
+## 4. The Three Dials
 
 ### Dial Definitions
 
 **DESIGN_VARIANCE:**
 - **1-3 (Predictable):** Symmetrical CSS Grid (12-col, equal fr-units), equal paddings, centered alignment
-- **4-7 (Offset):** `margin-top: -2rem` overlaps, varied image aspect ratios (4:3 next to 16:9), left-aligned headers over center-aligned data
-- **8-10 (Asymmetric):** Masonry, `grid-template-columns: 2fr 1fr 1fr`, massive empty zones (`padding-left: 20vw`)
-- **Mobile override:** For 4-10, asymmetric layouts above `md:` MUST collapse to `w-full`, `px-4`, `py-8` below 768px
+- **4-7 (Offset):** `margin-top: -2rem` overlaps, varied image aspect ratios, left-aligned headers over center data, asymmetric section spacing
+- **8-10 (Asymmetric):** Masonry, `grid-template-columns: 2fr 1fr 1fr`, massive empty zones, pinned scroll structures
+- **Mobile override:** Levels 4-10 collapse to `w-full`, `px-4`, `py-8` below 768px. No rotations, no overlaps, no negative margins.
 
 **MOTION_INTENSITY:**
-- **1-3 (Static):** No automatic animations. CSS `:hover` and `:active` states only
-- **4-7 (Fluid CSS):** CSS transitions with Emil's custom cubic-beziers. Animation-delay cascades for load-ins. Focus on `transform` and `opacity`
-- **8-10 (Advanced Choreography):** Complex scroll-triggered reveals, parallax, GSAP ScrollTrigger, Motion hooks. Never `window.addEventListener('scroll')`
+- **1-3 (Static):** No automatic animations. CSS `:hover` and `:active` only
+- **4-7 (Fluid CSS):** Emil's custom cubic-beziers on transitions. Animation-delay cascades for load-ins. `whileInView` reveals
+- **8-10 (Advanced):** GSAP ScrollTrigger, immersive scroll sections (horizontal pan, sticky-stack, pinned sequences), spring physics, parallax. Never `window.addEventListener('scroll')`
 
 **VISUAL_DENSITY:**
-- **1-3 (Art Gallery):** `py-32` to `py-48`. Maximum breathing room
-- **4-7 (Daily App):** Standard spacing `py-16` to `py-24`
-- **8-10 (Cockpit):** Tight paddings. 1px lines separate data. Mandatory: `font-mono` for all numbers
+- **1-3 (Art Gallery):** Section padding `py-32` to `py-48`. Large text, generous image sizing. Max 2 content units per section
+- **4-7 (Daily App):** Standard `py-16` to `py-24`. Multiple content units, balanced image-to-text ratio
+- **8-10 (Cockpit):** Tight paddings. 1px rules separate data. Mandatory: `font-mono` for numbers. Cards omitted unless structural
 
 ### Dial Inference Table
 
@@ -47,21 +77,24 @@ If ambiguous, ask exactly one question. If you can confidently infer, proceed si
 | "redesign - preserve" | match existing | +1 | match existing |
 | "redesign - overhaul" | +2 | +2 | match existing |
 
-### Use-Case Presets
+### How Dials Gate Decisions
 
-| Use case | VARIANCE | MOTION | DENSITY |
-|---|---|---|---|
-| Landing (SaaS, mainstream) | 7 | 6 | 4 |
-| Landing (Agency / creative) | 9 | 8 | 3 |
-| Landing (Premium consumer) | 7 | 6 | 3 |
-| Portfolio (Designer / studio) | 8 | 7 | 3 |
-| Portfolio (Developer) | 6 | 5 | 4 |
-| Editorial / Blog | 6 | 4 | 3 |
-| Public-sector service | 3 | 2 | 5 |
+| Decision | Gate |
+|---|---|
+| Use centered hero? | Only when VARIANCE ≤ 4, or editorial/manifesto brief |
+| Section padding | DENSITY 1-3 → py-32/48, 4-7 → py-16/24, 8-10 → py-8/12 |
+| Card grids vs spacing | DENSITY ≤ 7 → cards acceptable. DENSITY ≥ 8 → cards banned, use dividers |
+| Scroll-driven animation | MOTION ≥ 8 only |
+| Stagger reveals | MOTION ≥ 5 only |
+| Magnetic hover | MOTION ≥ 7 only |
+| Double-bezel cards | VARIANCE ≥ 6 AND DENSITY ≤ 5 AND premium/marketing surface. Max 3 per page |
+| Immersive scroll section (sticky-stack, horizontal pan) | MOTION ≥ 8 AND VARIANCE ≥ 8 AND NOT product UI. Rare — max 1 per page, never on dashboards/forms/tables |
+| Glassmorphism | Only when brief explicitly calls for it. Never as default |
+| Marquee | Max 1 per page. MOTION ≥ 5 |
 
-## 3. Design System Map
+## 5. Design System Map
 
-When the brief matches a real system, use the official package. Never recreate its CSS by hand. One system per project.
+When the brief matches a real system, use the official package. One system per project.
 
 | Brief reads as… | Reach for |
 |---|---|
@@ -77,20 +110,35 @@ When the brief matches a real system, use the official package. Never recreate i
 
 When the brief is an aesthetic with no official system, build with Tailwind + Motion + native CSS. Label borrowed inspiration honestly.
 
-## 4. Full-Output Enforcement
+## 6. Full-Output Enforcement
 
 Never produce placeholders. Every code block is complete, runnable, unabridged.
 
-**Banned:** `// ...`, `// TODO`, `// rest of code`, `/* ... */`, bare `...`, "you can extend this later", "the rest follows the same pattern", "I'll leave that as an exercise."
+**Banned:** `// ...`, `// TODO`, `// rest of code`, `/* ... */`, bare `...`, "you can extend this later."
 
-When approaching token limits: write at full quality to a clean breakpoint, then end with `[PAUSED — X of Y complete. Send "continue" to resume.]`
+When approaching token limits: write at full quality to a clean breakpoint, then end with `[PAUSED - X of Y complete. Send "continue" to resume.]`
 
-## 5. Redesign Protocol
+## 7. Reference Analysis
 
-If the task is a redesign:
+When a user provides inspiration (URLs, screenshots, brand names), extract concrete traits. Do not copy vibe words.
 
-1. **Detect the mode:** greenfield (no existing), preserve (modernise without breaking brand), overhaul (new visual language)
-2. **Audit first:** document brand tokens, IA, content blocks, patterns to preserve, patterns to retire, SEO baseline
-3. **Preserve** IA, copy voice, accessibility wins, analytics events, URL slugs, primary nav labels
-4. **Modernise in order:** typography refresh → spacing & rhythm → color recalibration → motion layer → hero recomposition → full block replacement
+**Extract:**
+- Layout structure (hero shape, section cadence, grid pattern)
+- Color strategy (restrained/committed/full/drenched)
+- Type hierarchy (sizes, weights, pairings, letter-spacing)
+- Motion vocabulary (which elements animate, how fast, what easing)
+- Content density (words per section, image-to-text ratio)
+- Interactive patterns (hover states, transitions, navigation style)
+
+**Do not copy:**
+- Exact colors (extract the strategy, not the hex)
+- Brand-specific fonts (extract the class: geometric sans, humanist serif, mono)
+- Vibe words as design directives ("it feels expensive" → what makes it expensive?)
+
+## 8. Redesign Protocol
+
+1. **Detect the mode:** greenfield (no existing), preserve (modernise brand intact), overhaul (new visual, same content)
+2. **Audit first:** brand tokens, IA, content blocks, patterns to preserve/retire, SEO baseline, inferred dials
+3. **Preserve:** IA, copy voice, a11y wins, analytics events, URL slugs, primary nav labels
+4. **Modernise in order:** typography → spacing → color → motion → hero → full block replacement
 5. **Never change silently:** URL structure, nav labels, form fields, logo, legal copy
