@@ -4,6 +4,7 @@
     "./skills/create-skill",
     "./skills/full-build",
     "./skills/react-testing",
-    "./skills/smoke-tests"
+    "./skills/smoke-tests",
+    "./skills/vg-design"
   ]
 }
