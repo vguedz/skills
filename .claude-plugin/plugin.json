@@ -5,6 +5,7 @@
     "./skills/full-build",
     "./skills/react-testing",
     "./skills/smoke-tests",
+    "./skills/ship-with-docs",
     "./skills/vg-design"
   ]
 }
