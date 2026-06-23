@@ -88,7 +88,7 @@ Format: `"should <result> - for <action>"`. Group related scenarios under `descr
 
 ## Testing APIs
 
-**Async**: `findBy*` (wait for appear), `waitForElementToBeRemoved` (wait for disappear), `waitFor(() => ...)`. Return `waitForLoadToFinish` from `setup()` when the component has a meaningful loading state. Avoid manual `act`.
+**Async**: `findBy*` (wait for appear), `waitForElementToBeRemoved` (wait for disappear, MutationObserver — preferred over polling), `waitFor(() => ...)`. Return `waitForLoadToFinish` from `setup()` when the component has a meaningful loading state. Avoid manual `act`. See [testing-appearance-disappearance.md](references/testing-appearance-disappearance.md) for patterns and trade-offs.
 
 **Assertions**: `toBeVisible()` over `toBeInTheDocument`, `not.toBeInTheDocument()` for removal, `toBeDisabled()`, `toHaveTextContent()`, `toHaveValue()`, `toHaveBeenCalledWith()`.
 
@@ -104,3 +104,4 @@ See [testing-philosophy.md](references/testing-philosophy.md) for the principles
 - [references/test-organization.md](references/test-organization.md) — file and directory conventions for test suites
 - [references/msw-mocking.md](references/msw-mocking.md) — MSW server mocking: test against responses, not requests. server.use() patterns, never leave unmatched handlers
 - [references/testing-guide.md](references/testing-guide.md) — deeper rationale on test strategy, mocking, snapshots, and existing projects
+- [references/testing-appearance-disappearance.md](references/testing-appearance-disappearance.md) — appearance and disappearance patterns: `findBy*`, `waitForElementToBeRemoved`, `waitFor`, and absence assertions
