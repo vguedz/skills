@@ -1,6 +1,6 @@
 ---
 name: ship-with-docs
-description: Analyzes branch changes against a base (default origin/main), extracts product and technical decisions, updates documentation (CONTEXT.md, ADRs), and commits with a decision-rich message. Use when shipping a branch, preparing to merge, or wanting documentation to reflect all key decisions introduced by changes. Triggers on phrases like "ship with docs", "prepare to merge", "update docs for changes", "capture decisions from changes".
+description: Analyzes the entire uncommitted work (staged + unstaged diffs AND branch commits against origin/main), extracts every product and technical decision, documents everything in ADRs, updates CONTEXT.md, and commits with a decision-rich message. Does a thorough, extensive analysis — nothing is left undecided or undocumented. Use when shipping a branch, preparing to merge, or wanting documentation to reflect all key decisions introduced by changes. Triggers on phrases like "ship with docs", "prepare to merge", "update docs for changes", "capture decisions from changes".
 ---
 
 # Ship With Docs
@@ -8,9 +8,9 @@ description: Analyzes branch changes against a base (default origin/main), extra
 ## Quick Start
 
 ```
-1. Base → git diff...HEAD + git log
-2. Map → categorize changes
-3. Extract → run ADR + CONTEXT filters
+1. Full scope → git status + git diff --staged + git diff + git diff base...HEAD + git log
+2. Map → categorize every change across all uncommitted work
+3. Extract → run ADR + CONTEXT filters on every decision
 4. Present → user confirms batch
 5. Apply → edit CONTEXT.md, create ADRs
 6. Commit → present message, user confirms
@@ -20,13 +20,20 @@ description: Analyzes branch changes against a base (default origin/main), extra
 
 ### 1. Map Changes
 
+**Cover the entire uncommitted work — not just committed branch changes.** Analyze staged, unstaged, AND branch commits together.
+
 Determine base (default `origin/main`, overridable).
 
 ```
-git diff <base>...HEAD --stat    # what files changed
-git log <base>..HEAD --oneline   # commit narrative
-git diff <base>...HEAD           # full content
+git status                        # staged + unstaged overview
+git diff --staged                 # staged (cached) changes
+git diff                          # unstaged working-tree changes
+git diff <base>...HEAD --stat     # committed file changes vs base
+git log <base>..HEAD --oneline    # commit narrative
+git diff <base>...HEAD            # full committed diff
 ```
+
+Treat the combined diff (staged + unstaged + branch) as the full body of work to document.
 
 Categorize every meaningful change:
 
@@ -129,7 +136,7 @@ If zero doc-worthy changes, still present a summary and offer to commit.
 
 ## Quality Loop
 
-- [ ] Correct base, full diff discovered?
+- [ ] Staged, unstaged, and committed work all analyzed? Nothing left undecided?
 - [ ] Every change categorized correctly?
 - [ ] Each decision through ADR + CONTEXT filters?
 - [ ] Findings presented BEFORE any edits?
