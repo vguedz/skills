@@ -11,9 +11,8 @@ description: Analyzes the entire uncommitted work (staged + unstaged diffs AND b
 1. Full scope → git status + git diff --staged + git diff + git diff base...HEAD + git log
 2. Map → categorize every change across all uncommitted work
 3. Extract → run ADR + CONTEXT filters on every decision
-4. Present → user confirms batch
-5. Apply → edit CONTEXT.md, create ADRs
-6. Commit → present message, user confirms
+4. Apply → edit CONTEXT.md, create ADRs
+5. Commit → decision-rich message
 ```
 
 ## Workflow
@@ -71,50 +70,15 @@ Use these formats (see [CONTEXT-FORMAT.md](./CONTEXT-FORMAT.md) and [ADR-FORMAT.
 - **CONTEXT.md**: one-line per term, `_Avoid_:` for synonyms, no implementation details. Only domain-specific terms belong.
 - **ADR**: title + 1-3 sentence body. Sequential numbering (highest existing + 1).
 
-### 4. Present Findings — Batch Review
+### 4. Apply Updates
 
-Show a structured summary. **Do NOT edit files before confirmation.**
+Edit CONTEXT.md (add new entries, update existing ones) and create new ADR files in `docs/adr/` with the next sequential number.
 
-```
-## Changes Mapped
-### Product
-- [change] — [one-liner]
-### Technical
-- [change]
-### Task
-- [change]
-
-## Proposed Updates
-### CONTEXT.md
-- Add "**Term**": definition — from [change]
-- Update "**Term**": reason
-### New ADRs
-- NNNN-slug.md: [title] — [summary]
-
-## Skipped (no doc needed)
-- [change] — reason
-
-Proceed? (yes/no)
-```
-
-Wait for explicit yes. If user revises, update and re-ask.
-
-### 5. Apply Updates
-
-After confirmation:
-- Edit CONTEXT.md (add new entries, update existing ones)
-- Create new ADR files in `docs/adr/` with the next sequential number
-
-### 6. Stage & Commit Gate
+### 5. Stage & Commit
 
 ```
 git add CONTEXT.md docs/adr/NNNN-slug.md
-```
-
-Present message:
-
-```
-docs: capture decisions from <branch>
+git commit -m "docs: capture decisions from <branch>
 
 Product:
 - [summary]
@@ -123,23 +87,15 @@ Technical:
 - [summary]
 
 Task:
-- [summary]
+- [summary]"
 ```
 
-Ask: *"Commit? (yes/no/edit)"*
-
-- **yes** → `git commit`
-- **no** → stop
-- **edit** → revise and re-ask
-
-If zero doc-worthy changes, still present a summary and offer to commit.
+If zero doc-worthy changes, commit with a summary message.
 
 ## Quality Loop
 
 - [ ] Staged, unstaged, and committed work all analyzed? Nothing left undecided?
 - [ ] Every change categorized correctly?
 - [ ] Each decision through ADR + CONTEXT filters?
-- [ ] Findings presented BEFORE any edits?
-- [ ] User confirmed before applying?
-- [ ] If no doc changes, still offered commit?
+- [ ] If no doc changes, still committed with a summary?
 - [ ] Commit message structured and meaningful?
