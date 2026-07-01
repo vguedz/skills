@@ -12,11 +12,10 @@ Lead the build end-to-end. Make decisions, confirm via batch yes/no/more-info(op
 ```
 User: "build [feature]"
 1. Map all user paths exhaustively
-2. Confirm scope → "Proceed?" (yes/no/notes)
-3. "Start building?" gate
-4. Scaffold test blocks + TODOs
-5. Implement + write tests in vertical slices
-6. Quality gate: tests green, lint, format, build pass
+2. Confirm scope + start building
+3. Scaffold test blocks + TODOs
+4. Implement + write tests in vertical slices
+5. Quality gate: tests green, lint, format, build pass
 ```
 
 ## Workflow
@@ -27,7 +26,7 @@ Enumerate every user path: happy paths, edge cases, errors, loading/empty states
 
 **Batch questions**: group independent yes/no confirmations. For ambiguous decisions, propose answer and ask "OK?" — no open questions.
 
-### 2. Confirm Scope
+### 2. Confirm Scope & Start Building
 
 Present the full map:
 
@@ -41,24 +40,16 @@ Present the full map:
 ## Out of scope
 - ...
 
-Proceed? (yes/no, or notes)
+Scope locked. Start building? (yes/no, or notes)
 ```
 
-Wait for explicit yes.
+Single gate before writing any files. Wait for explicit yes.
 
-### 3. Start Building?
-
-```
-Scope locked. Start building? (yes/no)
-```
-
-Final gate before writing any files.
-
-### 4. Identify Test Infrastructure
+### 3. Identify Test Infrastructure
 
 Check `package.json` scripts, test configs, utilities, MSW. React → `react-testing` (skill) patterns. Other → industry standard (pytest, RSpec, etc.).
 
-### 5. Scaffold Test Blocks
+### 4. Scaffold Test Blocks
 
 One empty block per confirmed use case. Comment with expected UX:
 
@@ -71,19 +62,19 @@ describe('Feature', () => {
 })
 ```
 
-### 6. Create TODOs
+### 5. Create TODOs
 
 Flat TODO list via `todowrite`. Every use case maps to ≥1 TODO. Track through implementation.
 
-### 7. Implement
+### 6. Implement
 
 Work through TODOs via vertical slices (one test → one impl at a time). Verify compile after each chunk.
 
-### 8. Write Tests
+### 7. Write Tests
 
 Fill in scaffolded blocks. Tests exercise public interfaces, simulate real user workflows, assert observable outcomes. React: `react-testing` query priority + setup pattern. Run as you go; fix failures immediately.
 
-### 9. Quality Gate
+### 8. Quality Gate
 
 - [ ] All tests green
 - [ ] Lints pass
@@ -95,7 +86,7 @@ If anything fails, fix before moving on. Don't declare done until all pass.
 
 ## Rules
 
-- Never build before user confirms scope AND start-building gate.
+- Never build before user confirms the single scope + start gate.
 - Never skip test scaffolding.
 - Don't delete scaffolded blocks — fill them in.
 - Test what user sees, not what code does.
